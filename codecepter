@@ -1,0 +1,92 @@
+#!/bin/sh -lxe
+
+red=31
+green=32
+yellow=33
+blue=34
+
+function cecho {
+    color=$1
+    shift
+    echo "\033[${color}m$@\033[m"
+}
+
+function reset() {
+    if [ -e ./.rollback ]; then
+        source ./.rollback
+    else
+        cecho $yello ".rollback file not Found!"
+    fi
+}
+
+function clean() {
+    if [ -e ./.clean ]; then
+        source ./.clean
+    else
+        cecho $yello ".clean file not Found!"
+    fi
+}
+
+function run() {
+    time codecept run acceptance --steps $1
+}
+
+function usage() {
+    cecho $green "_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/"
+    cecho $green "_/"
+    cecho $green "_/                               _/                                         "
+    cecho $green "_/      _/_/_/    _/_/      _/_/_/    _/_/      _/_/_/    _/_/    _/_/_/       _/"
+    cecho $green "_/   _/        _/    _/  _/    _/  _/_/_/_/  _/        _/_/_/_/  _/    _/   _/_/_/_/    _/_/    _/ _/_/"
+    cecho $green "_/  _/        _/    _/  _/    _/  _/        _/        _/        _/    _/     _/      _/_/_/_/  _/_/"
+    cecho $green "_/   _/_/_/    _/_/      _/_/_/    _/_/_/    _/_/_/    _/_/_/  _/_/_/       _/      _/        _/"
+    cecho $green "_/                                                            _/             _/_/    _/_/_/  _/"
+    cecho $green "_/                                                           _/"
+    cecho $green "_/"
+    cecho $green "_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/"
+    echo ""
+    cecho $yellow "command:"
+    cecho $yellow "  list                         : Display Executable Test List"
+    cecho $yellow "  start [testname|default:all] : DatabaseMigration & codecept steps run"
+    cecho $yellow "  run   [testname(required)]   : codcept steps run [testname]"
+    cecho $yellow "  reset                        : DatabaseReMigration"
+}
+function list() {
+    for line in $(ls tests/acceptance | grep "^[0-9]" | sed -e "s/\.php//g"); do
+        cecho $green $line
+    done
+    exit 0
+}
+
+case ${1} in
+
+    start)
+    reset
+    clean
+    run ${2}
+    ;;
+
+    run)
+    if [ -z ${2} ]; then
+        cecho $red "not valid TestName"
+        exit 1
+    fi
+    run ${2}
+    ;;
+
+    list)
+    list
+    ;;
+
+    reset)
+    reset
+    clean
+    ;;
+
+    help|--help|-h)
+    usage
+    ;;
+    *)
+    usage
+    exit 1
+    ;;
+esac
