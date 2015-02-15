@@ -23,7 +23,7 @@ function clean() {
     if [ -e ./.clean ]; then
         source ./.clean
     else
-        cecho $yello ".clean file not Found!"
+        cecho $yello ".clean file  not Found!"
     fi
 }
 
