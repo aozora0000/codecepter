@@ -47,6 +47,9 @@ function bootstrap() {
     if [ ! -e ./.clean ]; then
         touch ./.clean
     fi
+    if [ ! -e ./.rollback ]; then
+        touch ./.rollback
+    fi
 }
 
 function add() {
