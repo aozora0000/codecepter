@@ -1,4 +1,4 @@
-#!/bin/sh -lxe
+#!/bin/sh -le
 
 red=31
 green=32
@@ -10,6 +10,17 @@ function cecho {
     shift
     echo "\033[${color}m$@\033[m"
 }
+
+
+if [ -e ./vendor/bin/codecept ]; then
+    CODECEPT=`pwd`/vendor/bin/codecept
+else
+    CODECEPT=`which codecept`
+    if [ ! -e $CODECEPT ]; then
+        cecho $yello "codecept bin not found!"
+        exit 1
+    fi
+fi
 
 function reset() {
     if [ -e ./.rollback ]; then
@@ -28,7 +39,25 @@ function clean() {
 }
 
 function run() {
-    time codecept run acceptance --steps $1
+    time $CODECEPT run acceptance --steps $1
+}
+
+function bootstrap() {
+    $CODECEPT bootstrap
+    if [ ! -e ./.clean ]; then
+        touch ./.clean
+    fi
+}
+
+function add() {
+    $CODECEPT generate:cept acceptance $1
+}
+
+function list() {
+    for line in $(ls tests/acceptance | grep "^[0-9a-zA-Z]" | sed -e "s/\.php//g"); do
+        cecho $green $line
+    done
+    exit 0
 }
 
 function usage() {
@@ -45,16 +74,12 @@ function usage() {
     cecho $green "_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/"
     echo ""
     cecho $yellow "command:"
+    cecho $yellow "  bootstrap                    : Bootstrap Codecept"
     cecho $yellow "  list                         : Display Executable Test List"
     cecho $yellow "  start [testname|default:all] : DatabaseMigration & codecept steps run"
     cecho $yellow "  run   [testname(required)]   : codcept steps run [testname]"
+    cecho $yellow "  add   [testname(required)]   : add TestSuite [testname]"
     cecho $yellow "  reset                        : DatabaseReMigration"
-}
-function list() {
-    for line in $(ls tests/acceptance | grep "^[0-9]" | sed -e "s/\.php//g"); do
-        cecho $green $line
-    done
-    exit 0
 }
 
 case ${1} in
@@ -75,6 +100,18 @@ case ${1} in
 
     list)
     list
+    ;;
+
+    bootstrap)
+    bootstrap
+    ;;
+
+    add)
+    if [ -z ${2} ]; then
+        cecho $red "not valid TestName"
+        exit 1
+    fi
+    add ${2}
     ;;
 
     reset)
